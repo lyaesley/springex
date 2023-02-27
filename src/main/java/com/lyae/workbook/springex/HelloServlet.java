@@ -1,4 +1,4 @@
-package com.example.springex;
+package com.lyae.workbook.springex;
 
 import java.io.*;
 import javax.servlet.http.*;
