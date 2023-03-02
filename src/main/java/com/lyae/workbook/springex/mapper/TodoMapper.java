@@ -1,0 +1,17 @@
+package com.lyae.workbook.springex.mapper;
+
+import com.lyae.workbook.springex.domain.TodoVO;
+
+import java.util.List;
+
+public interface TodoMapper {
+    String getTime();
+
+    void insert(TodoVO todoVO);
+
+    List<TodoVO> selectAll();
+
+    TodoVO selectOne(Long tno);
+
+    void delete(Long tno);
+}
