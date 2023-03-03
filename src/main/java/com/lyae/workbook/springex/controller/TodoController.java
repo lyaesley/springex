@@ -1,5 +1,6 @@
 package com.lyae.workbook.springex.controller;
 
+import com.lyae.workbook.springex.dto.PageRequestDTO;
 import com.lyae.workbook.springex.dto.TodoDTO;
 import com.lyae.workbook.springex.service.TodoService;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +24,15 @@ public class TodoController {
     private final TodoService todoService;
 
     @RequestMapping("/list")
-    public void list(Model model) {
+    public void list(@Valid PageRequestDTO pageRequestDTO, BindingResult bindingResult, Model model) {
         log.info("todo list.....");
+        log.info(pageRequestDTO);
 
-        model.addAttribute("dtoList", todoService.getAll());
+        if(bindingResult.hasErrors()) {
+            pageRequestDTO = PageRequestDTO.builder().build();
+        }
+
+        model.addAttribute("responseDTO", todoService.getList(pageRequestDTO));
     }
 
     @GetMapping("/register")
@@ -54,7 +60,7 @@ public class TodoController {
     }
 
     @GetMapping({"/read", "/modify"})
-    public void read(Long tno, Model model) {
+    public void read(Long tno, PageRequestDTO pageRequestDTO, Model model) {
         TodoDTO todoDTO = todoService.getOne(tno);
         log.info(todoDTO);
 
@@ -62,12 +68,39 @@ public class TodoController {
     }
 
     @PostMapping("/remove")
-    public String remove(Long tno, RedirectAttributes redirectAttributes) {
+    public String remove(Long tno, PageRequestDTO pageRequestDTO, RedirectAttributes redirectAttributes) {
 
         log.info("-------remove-------");
         log.info("tno : " + tno);
 
-        todoService.delete(tno);
+        todoService.remove(tno);
+
+        redirectAttributes.addAttribute("page", 1);
+        redirectAttributes.addAttribute("size", pageRequestDTO.getSize());
+
+        return "redirect:/todo/list";
+    }
+
+    @PostMapping("/modify")
+    public String modify(PageRequestDTO pageRequestDTO,
+                        @Valid TodoDTO todoDTO,
+                        BindingResult bindingResult,
+                        RedirectAttributes redirectAttributes) {
+
+        if(bindingResult.hasErrors()) {
+            log.info("has errors.....");
+
+            redirectAttributes.addFlashAttribute("errors", bindingResult.getAllErrors());
+            redirectAttributes.addAttribute("tno", todoDTO.getTno());
+            return "redirect:/todo/modify";
+        }
+        log.info("-------modify-------");
+        log.info(todoDTO);
+
+        todoService.modify(todoDTO);
+
+        redirectAttributes.addAttribute("page", pageRequestDTO.getPage());
+        redirectAttributes.addAttribute("size", pageRequestDTO.getSize());
 
         return "redirect:/todo/list";
     }
